@@ -6,7 +6,7 @@ import fs from "fs"
 //   api_secret: process.env.CLOUDINARY_API_SECRET 
 // });
 
-const uploadOnCloudinary = async (localFilePath) => {
+export const uploadOnCloudinary = async (localFilePath) => {
    cloudinary.config({ 
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME, 
     api_key: process.env.CLOUDINARY_API_KEY, 
@@ -30,6 +30,20 @@ const uploadOnCloudinary = async (localFilePath) => {
     }
 }
 
-
-
-export default uploadOnCloudinary
+export const deleteOnCloudinary = async (public_id) => {
+    cloudinary.config({ 
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME, 
+        api_key: process.env.CLOUDINARY_API_KEY, 
+        api_secret: process.env.CLOUDINARY_API_SECRET 
+      });
+      
+  try {
+  
+    await cloudinary.uploader.destroy(public_id);
+    console.log("Image deleted successfully on Cloudinary");
+    return true;
+  } catch (error) {
+    console.error("Error deleting image on Cloudinary:", error);
+    return error;
+  }
+};

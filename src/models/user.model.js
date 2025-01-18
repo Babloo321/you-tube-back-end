@@ -40,6 +40,8 @@ const userSchema = new Schema(
     required:[true,"Password is required"],
   },
   refreshToken:{type:String},
+  avatarId:{type:String,required:true},
+  coverImageId:{type:String},
 
 }, {timestamps:true}
 )

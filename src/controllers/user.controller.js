@@ -1,7 +1,7 @@
 import asyncHandler from "../utils/asyncHandler.js";
 import ApiError from "../utils/apiError.js";
 import User from "../models/user.model.js";
-import uploadOnCloudinary from "../utils/cloudinay.js";
+import { uploadOnCloudinary, deleteOnCloudinary } from "../utils/cloudinay.js";
 import ApiResponse from "../utils/apiResponse.js";
 import jwt from "jsonwebtoken";
 
@@ -76,11 +76,15 @@ export const registerUser = asyncHandler(async (req, res) => {
 
   const avatar = await uploadOnCloudinary(avatarLocalImage);
   const coverImage = await uploadOnCloudinary(coverLocalImage);
-  //  console.log("this is AVATAR: ", avatar)
+  //  console.log("this is coverImage: ", coverImage)
   if (!avatar) {
     throw new ApiError(400, "Avatar image is required");
   }
 
+  // console.log('Avatar details: ', avatar);
+  // console.log(`avatar.url: ${avatar.url}===avatar.public_id: ${avatar.public_id}\ncoverImage.url: ${coverImage?.url}===coverImage.public_id: ${coverImage?.public_id}`);
+  const avatarPublicId = avatar.public_id;
+  const coverImagePublicId = coverImage?.public_id;
   const user = await User.create({
     email,
     password,
@@ -88,6 +92,8 @@ export const registerUser = asyncHandler(async (req, res) => {
     fullName,
     avatar: avatar.url,
     coverImage: coverImage?.url || "",
+    avatarId: avatarPublicId,
+    coverImageId: coverImagePublicId,
   });
   //  console.log("DATA: ",user)
   const createdUser = await User.findById(user._id).select(
@@ -294,6 +300,18 @@ export const updateUserAvatar = asyncHandler(async(req,res) =>{
     throw new ApiError(400, "Avatar image is missing");
   }
   
+  // remove image from cloudinary
+  // const deleteImageOnCloudinary = await deleteOnCloudinary();
+  // if(!deleteImageOnCloudinary){
+  //   throw new ApiError(500, "Something went wrong while deleting avatar on cloudinary");
+  // }
+  
+    // remove image from cloudinary
+    const deleteImageOnCloudinary = await deleteOnCloudinary(req.user?.avatarId);
+    if(!deleteImageOnCloudinary){
+      throw new ApiError(500, "Something went wrong while deleting avatar on cloudinary");
+    }
+  
   // upload image to cloudinary
   const avatar = await uploadOnCloudinary(avatarLocalPath);
   if(!avatar.url){
@@ -301,7 +319,8 @@ export const updateUserAvatar = asyncHandler(async(req,res) =>{
   }
 
   // update avatar in database
-  const user = await User.findByIdAndUpdate(req.user?._id,{$set:{avatar:avatar.url}},{new:true}).select("-password");
+  let user = await User.findByIdAndUpdate(req.user?._id,{$set:{avatar:avatar.url}},{new:true}).select("-password");
+   user = await User.findByIdAndUpdate(req.user?._id,{$set:{avatarId:avatar.public_id}},{new:true}).select("-password");
   if(!user){
     throw new ApiError(500, "Something went wrong while updating Avatar in the user");
   }
@@ -322,6 +341,12 @@ export const updateUserCoverImage = asyncHandler(async(req,res) =>{
     throw new ApiError(400, "Cover image is missing");
   }
   
+  // remove image from cloudinary
+  const deleteImageOnCloudinary = await deleteOnCloudinary(req.user?.coverImageId);
+  if(!deleteImageOnCloudinary){
+    throw new ApiError(500, "Something went wrong while deleting avatar on cloudinary");
+  }
+
   // upload image to cloudinary
   const coverImage = await uploadOnCloudinary(coverLocalPath);
   if(!coverImage.url){
@@ -329,7 +354,9 @@ export const updateUserCoverImage = asyncHandler(async(req,res) =>{
   }
 
   // update avatar in database
-  const user = await User.findByIdAndUpdate(req.user?._id,{$set:{coverImage:coverImage.url}},{new:true}).select("-password");
+  let user = await User.findByIdAndUpdate(req.user?._id,{$set:{coverImage:coverImage.url}},{new:true}).select("-password");
+   user = await User.findByIdAndUpdate(req.user?._id,{$set:{coverImageId:coverImage.public_id}},{new:true}).select("-password");
+
   if(!user){
     throw new ApiError(500, "Something went wrong while updating Avatar in the user");
   }
@@ -401,3 +428,13 @@ export const getUserChannelProfile = asyncHandler(async(req,res) => {
     new ApiResponse(200,channel[0],"User channel fetched successfully")
   )
 })
+
+
+
+
+
+
+
+
+
+
