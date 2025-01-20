@@ -368,6 +368,7 @@ export const updateUserCoverImage = asyncHandler(async(req,res) =>{
 })
 
 export const getUserChannelProfile = asyncHandler(async(req,res) => {
+  // handling data coming from params
   const { userName } = req.params;
   if(!userName?.trim()){
     throw new ApiError(400, "userName is missing");
