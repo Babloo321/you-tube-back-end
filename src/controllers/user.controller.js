@@ -2,7 +2,8 @@ import asyncHandler from "../utils/asyncHandler.js";
 import ApiError from "../utils/apiError.js";
 import User from "../models/user.model.js";
 import { uploadOnCloudinary, deleteOnCloudinary } from "../utils/cloudinay.js";
-import ApiResponse from "../utils/apiResponse.js";
+// import ApiResponse from "../utils/apiResponse.js";
+import ApiResponse from '../utils/ApiResponse.js'
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 
@@ -79,7 +80,7 @@ export const registerUser = asyncHandler(async (req, res) => {
   const coverImage = await uploadOnCloudinary(coverLocalImage);
   //  console.log("this is coverImage: ", coverImage)
   if (!avatar) {
-    throw new ApiError(400, "Avatar image is required");
+    throw new ApiError(500, "Error on Cloudinary plateform");
   }
 
   // console.log('Avatar details: ', avatar);
