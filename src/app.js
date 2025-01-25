@@ -35,6 +35,9 @@ import commentRouter from './routes/comment.routes.js';
 app.use("/api/v1/comments",commentRouter);
 export default app;
 
+// import playlistRouter
+import playlistRouter from './routes/playlist.routes.js';
+app.use("/api/v1/playlist",playlistRouter);
 /*
 import express from "express"
 import cors from "cors"

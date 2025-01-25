@@ -33,7 +33,6 @@ const getUserTweets = asyncHandler(async (req, res) => {
   // sbse pehle userId get karenge req.params se
   // database me us user ko find karenge uska tweet fetch karenge
   let userId = req.params.userId;
-  userId = new mongoose.Types.ObjectId(userId);
   if (!isValidObjectId(userId)) {
     throw new ApiError(400, "Invalid user id");
   }
