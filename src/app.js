@@ -42,6 +42,10 @@ app.use("/api/v1/playlist",playlistRouter);
 // import subscriptionRouter
 import subscriptionRouter from './routes/subscription.routes.js';
 app.use("/api/v1/subscriptions",subscriptionRouter);
+
+// import likeRouter
+import likeRouter from './routes/like.routes.js';
+app.use("/api/v1/likes",likeRouter);
 /*
 import express from "express"
 import cors from "cors"
