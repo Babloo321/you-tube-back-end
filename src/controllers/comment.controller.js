@@ -9,19 +9,58 @@ const getVideoComments = asyncHandler(async (req, res) => {
     //TODO: get all comments for a video
     const {videoId} = req.params
     const {page = 1, limit = 10} = req.query
-    if(isValidObjectId(videoId)){
+    if(!isValidObjectId(videoId)){
         throw new ApiError(400, "Invalid Video Id")
     }
+
+    const videoComment = await Comment.aggregate([
+        {
+            $match: {
+                video: new mongoose.Types.ObjectId(videoId),
+            },
+        },
+       {
+        $project:{
+            content: 1,
+            _id:0,
+            createdAt: 1
+        }
+       },
+        {
+            $skip: (parseInt(page) - 1) * parseInt(limit),
+        },
+        {
+            $limit: parseInt(limit),
+        },
+    ])
+
+    if(!videoComment){
+        throw new ApiError(500, "Something went wrong while fetching comments")
+    }
+    return res
+                .status(200)
+                .json( 
+                    new ApiResponse(
+                        200,
+                        videoComment,
+                        "Comments fetched successfully"
+                    )
+                )
 
 })
 
 const addComment = asyncHandler(async (req, res) => {
     // TODO: add a comment to a video
     const { content } = req.body
+    const { videoId } = req.params
+    if(!isValidObjectId(videoId)){
+        throw new ApiError(400, "Invalid Video Id")
+    }
     if(!content){
         throw new ApiError(400, "Content is required")
     }
-    const comment = await Comment.create({content})
+    const comment = await Comment.create({content,video:videoId,owner:req.user?._id})
+    await comment.save()
     if(!comment){
         throw new ApiError(500, "Something went wrong while creating comment")
     }
@@ -40,13 +79,17 @@ const addComment = asyncHandler(async (req, res) => {
 
 const updateComment = asyncHandler(async (req, res) => {
     // TODO: update a comment
-    let {commentId} = req.params
-    commentId = new mongoose.Types.ObjectId(commentId)
-    const {content} = req.body
-    if(!(commentId || content)){
-        throw new ApiError(400, "All fields are required")
+    const {commentId} = req.params
+   
+    if(!isValidObjectId(commentId)){
+        throw new ApiError(400, "Invalid Comment Id")
     }
-    const comment = await Comment.findByIdAndUpdate(commentId, {content}, {new: true})
+    const {content} = req.body
+    if(!content){
+        throw new ApiError(400, "Content is required")
+    }
+    const comment = await Comment.findByIdAndUpdate(commentId, {content}, {new: true}).select("content -_id")
+    await comment.save()
     if(!comment){
         throw new ApiError(500, "Something went wrong while updating comment")
     }
@@ -65,7 +108,9 @@ const updateComment = asyncHandler(async (req, res) => {
 const deleteComment = asyncHandler(async (req, res) => {
     // TODO: delete a comment
     let {commentId} = req.params
-    commentId = new mongoose.Types.ObjectId(commentId)
+    if(!isValidObjectId(commentId)){
+        throw new ApiError(400, "Invalid Comment Id")
+    }
     const comment = await Comment.findByIdAndDelete(commentId)
     if(!comment){
         throw new ApiError(500, "Something went wrong while deleting comment")
