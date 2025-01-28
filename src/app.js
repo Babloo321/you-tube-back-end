@@ -46,6 +46,10 @@ app.use("/api/v1/subscriptions",subscriptionRouter);
 // import likeRouter
 import likeRouter from './routes/like.routes.js';
 app.use("/api/v1/likes",likeRouter);
+
+// import dashboard
+import dashboardRouter from './routes/dashboard.routes.js';
+app.use("/api/v1/dashboard",dashboardRouter);
 /*
 import express from "express"
 import cors from "cors"
